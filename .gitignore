@@ -15,3 +15,5 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+/payper-5-minutes/.idea/
+/subscriptions-app/.idea/
