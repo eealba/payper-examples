@@ -1,0 +1,26 @@
+[
+  {
+    "id": "prod-004",
+    "title": "Gym Starter Pack",
+    "description": "3-month gym pass. Basic gym kit for beginners. Includes essential accessories and a starter workout guide.",
+    "price": 39.99,
+    "paymentIntent": "CAPTURE",
+    "img": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=600"
+  },
+  {
+    "id": "prod-005",
+    "title": "Strength Training Set",
+    "description": "3-month strength training pass with a 2-week free trial. Weighted training equipment set for strength workouts and progressive resistance training.",
+    "price": 49.99,
+    "paymentIntent" : "AUTHORIZE",
+    "img": "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=600"
+  },
+  {
+    "id": "prod-006",
+    "title": "Cardio Essentials",
+    "description": "3-month gym pass. High-energy cardio accessories and wearable gear to boost endurance sessions.",
+    "price": 12.99,
+    "img": "https://images.unsplash.com/photo-1593079831268-3381b0db4a77?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=600",
+    "paymentIntent": "CAPTURE"
+  }
+]
