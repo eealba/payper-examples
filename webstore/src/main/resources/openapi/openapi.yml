@@ -1,0 +1,349 @@
+openapi: 3.0.3
+info:
+  title: Web Store API
+  version: 1.0.0
+  description: API for a simple web store to manage and retrieve product information.
+servers:
+  - url: /
+paths:
+  /api/catalog:
+    get:
+      summary: Get product catalog
+      description: Returns a list of products available in the catalog.
+      operationId: getCatalog
+      tags:
+        - Catalog
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductDTO'
+  /api/checkout/orders:
+    post:
+      summary: Submit an order for checkout
+      description: Receives delivery address and payment method for checkout.
+      operationId: submitOrder
+      tags:
+        - Checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequestDTO'
+      responses:
+        '200':
+          description: Order submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponseDTO'
+  /api/checkout/orders/{referenceId}/capture:
+    post:
+      summary: Capture payment for an order
+      description: Captures payment for the specified order.
+      operationId: captureOrderPayment
+      tags:
+        - Checkout
+      parameters:
+        - name: referenceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the order to capture payment for.
+      responses:
+        '200':
+          description: Payment captured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptureOrderResponseDTO'
+  /api/checkout/orders/{referenceId}/authorize:
+    post:
+      summary: Authorize payment for an order
+      description: authorizes payment for the specified order.
+      operationId: authorizeOrderPayment
+      tags:
+        - Checkout
+      parameters:
+        - name: referenceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the order to authorize payment for.
+      responses:
+        '200':
+          description: Payment authorized successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeOrderResponseDTO'
+  /api/backoffice/orders:
+    get:
+      summary: Get list of orders
+      description: Returns a list of all orders in the system.
+      operationId: getBackofficeOrders
+      tags:
+        - Backoffice
+      responses:
+        '200':
+          description: A list of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderModelDTO'
+  /api/backoffice/orders/history:
+    get:
+      summary: Get order history
+      description: Returns the history of all orders in the system.
+      operationId: getOrderHistory
+      tags:
+        - Backoffice
+      responses:
+        '200':
+          description: A list of orders with history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderModelDTO'
+  /api/payments/authorizations/{referenceId}/capture:
+    post:
+      summary: Capture an authorized payment
+      description: Captures a previously authorized payment using the authorization ID.
+      operationId: captureAuthorizedPayment
+      tags:
+        - Payments
+      parameters:
+        - name: referenceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the order to capture payment for.
+      responses:
+        '200':
+          description: Authorized payment captured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptureAuthorizationResponseDTO'
+components:
+  schemas:
+    ProductDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique reference ID for the product
+        title:
+          type: string
+          description: Product title
+        description:
+          type: string
+          description: Product description
+        price:
+          type: number
+          description: Product price
+          x-java-type: java.math.BigDecimal
+        img:
+          type: string
+          description: Product image URL
+        paymentIntent:
+          type: string
+          description: Payment intent identifier or details
+          enum: [CAPTURE, AUTHORIZE]
+      required:
+        - id
+        - title
+        - description
+        - price
+        - img
+    OrderRequestDTO:
+      type: object
+      properties:
+        productId:
+          type: string
+        deliveryAddress:
+          $ref: '#/components/schemas/DeliveryAddressDTO'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethodDTO'
+        paymentIntent:
+          type: string
+          description: Payment intent identifier or details
+          enum: [CAPTURE, AUTHORIZE]
+
+      required:
+        - deliveryAddress
+        - productId
+        - paymentIntent
+    OrderResponseDTO:
+      type: object
+      properties:
+        approvalUrl:
+          type: string
+        status:
+          $ref: '#/components/schemas/OrderStatusDTO'
+        id:
+          type: string
+      required:
+        - links
+        - status
+        - id
+    CaptureOrderResponseDTO:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/OrderStatusDTO'
+      required:
+        - status
+    AuthorizeOrderResponseDTO:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/OrderStatusDTO'
+      required:
+        - status
+    CaptureAuthorizationResponseDTO:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/AuthorizationStatusDTO'
+      required:
+        - status
+    LinkDescriptionDTO:
+      type: object
+      properties:
+        href:
+          type: string
+        rel:
+          type: string
+      required:
+        - href
+        - rel
+    OrderStatusDTO:
+      type: string
+      enum:
+        - CREATED
+        - SAVED
+        - APPROVED
+        - VOIDED
+        - COMPLETED
+        - PAYER_ACTION_REQUIRED
+        - FAILED
+    AuthorizationStatusDTO:
+      type: string
+      enum:
+        - COMPLETED
+        - FAILED
+    DeliveryAddressDTO:
+      type: object
+      properties:
+        address:
+          type: string
+        city:
+          type: string
+        zip:
+          type: string
+        country:
+          type: string
+      required:
+        - address
+        - city
+        - zip
+        - country
+    PaymentMethodDTO:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [paypal, card]
+        cardDetails:
+          $ref: '#/components/schemas/CardDetailsDTO'
+      required:
+        - type
+    CardDetailsDTO:
+      type: object
+      properties:
+        cardNumber:
+          type: string
+        cardName:
+          type: string
+        cardExpiry:
+          type: string
+        cardCvc:
+          type: string
+      required:
+        - cardNumber
+        - cardName
+        - cardExpiry
+        - cardCvc
+    OrderModelDTO:
+      type: object
+      properties:
+        product:
+          $ref: '#/components/schemas/ProductDTO'
+        deliveryAddress:
+          $ref: '#/components/schemas/DeliveryAddressDTO'
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethodDTO'
+        createTime:
+          type: string
+          format: date-time
+        updateTime:
+          type: string
+          format: date-time
+        id:
+          $ref: '#/components/schemas/OrderId'
+        externalOrderId:
+          $ref: '#/components/schemas/ExternalOrderId'
+        externalAuthorizationId:
+          $ref: '#/components/schemas/AuthorizationId'
+        paymentProvider:
+          $ref: '#/components/schemas/PaymentProvider'
+        status:
+          $ref: '#/components/schemas/OrderStatusDTO'
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkDescriptionDTO'
+        referenceId:
+          $ref: '#/components/schemas/ReferenceId'
+        paymentIntent:
+          type: string
+          description: Payment intent identifier or details
+      required:
+        - product
+        - deliveryAddress
+        - paymentMethod
+        - createTime
+        - updateTime
+        - id
+        - externalOrderId
+        - paymentProvider
+        - status
+        - links
+        - referenceId
+        - paymentIntent
+    OrderId:
+      type: integer
+      format: int64
+    ExternalOrderId:
+      type: string
+    AuthorizationId:
+      type: string
+    PaymentProvider:
+      type: string
+      enum:
+        - PAYPAL
+    ReferenceId:
+      type: string

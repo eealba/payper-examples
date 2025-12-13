@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Backoffice Demo</title>
+    <link href="/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container py-5">
+    <h1 class="mb-4 text-center">Backoffice Demo</h1>
+    <div class="mb-3 text-center">
+        <button class="btn btn-primary me-2" id="getOrdersBtn">Get Orders</button>
+        <button class="btn btn-secondary" id="getOrdersHistoryBtn">Get Orders History</button>
+    </div>
+    <div class="container">
+        <table class="table table-bordered table-hover align-middle" id="ordersTable" style="display:none;">
+            <thead class="table-light">
+                <tr>
+                    <th>Creation Date</th>
+                    <th>Status</th>
+                    <th>ReferenceId</th>
+                    <th>OrderId</th>
+                    <th>Payment Provider</th>
+                    <th>External OrderId</th>
+                    <th>External AuthorizationId</th>
+                    <th>ProductId</th>
+                    <th>Product Price</th>
+                    <th>Payment Method</th>
+                    <th>Payment Intent</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+                <!-- Orders will be rendered here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<script src="/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="app.js"></script>
+<script src="backapp.js"></script>
+</body>
+</html>

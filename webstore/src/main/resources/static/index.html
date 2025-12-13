@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Webstore Project Introduction</title>
+    <link href="/vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container py-5">
+    <h1 class="mb-4 text-center">Webstore Project</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="card-title">Project Overview</h2>
+            <p>This repository contains a small demo web store application — a proof-of-concept (PoC) that showcases a product catalog, a checkout flow and a backoffice demo for order management. The project demonstrates integrating PayPal payments using the <a href="https://github.com/eealba/payper" target="_blank">Payper Java SDK</a> (payper-orders-v2 and payper-payments-v2).</p>
+
+            <h3 class="mt-4">Key Features</h3>
+            <ul>
+                <li>Product catalog with dynamic product cards</li>
+                <li>Checkout process with delivery address and payment method selection (PayPal or credit card)</li>
+                <li>Integration with PayPal using the Payper Java SDK</li>
+                <li>Backoffice demo to view orders, view history and capture authorized payments</li>
+                <li>REST API endpoints documented with OpenAPI/Swagger</li>
+            </ul>
+
+            <h3 class="mt-4">Technology Stack</h3>
+            <ul>
+                <li><strong>Java 21</strong> - Main programming language</li>
+                <li><strong>Spring Boot 3.5.6</strong> - Backend framework for REST APIs and web application</li>
+                <li><strong>Payper Java SDK</strong> - <a href="https://github.com/eealba/payper" target="_blank">https://github.com/eealba/payper</a> (payper-orders-v2 and payper-payments-v2)</li>
+                <li><strong>MapStruct</strong> - Java bean mapping</li>
+                <li><strong>Lombok</strong> - Boilerplate reduction</li>
+                <li><strong>Springdoc OpenAPI / Swagger</strong> - API documentation and UI</li>
+                <li><strong>Jackson</strong> - JSON serialization/deserialization</li>
+                <li><strong>Bootstrap 5</strong> - Responsive frontend styling</li>
+            </ul>
+
+            <h3 class="mt-4">Requirements</h3>
+            <p>You need a PayPal API credential (Client ID and Client Secret). See <a href="https://developer.paypal.com/api/rest/authentication/" target="_blank">PayPal API Authentication</a> for details.</p>
+            <ol>
+                <li>Go to the <a href="https://developer.paypal.com/dashboard/" target="_blank">PayPal Developer Dashboard</a> and log in or sign up.</li>
+                <li>Select <strong>Apps & Credentials</strong>.</li>
+                <li>New accounts come with a Default Application in the REST API apps section. To create a new project, select <strong>Create App</strong>.</li>
+                <li>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> for your app.</li>
+                <li>Create the file <code>credentials.properties</code> in <code>~/.payper/</code> as required by the <code>LocalSystemPropertyConfig</code> class, with the following content:<br>
+                    <code>PAYPAL-CLIENT-ID=&lt;clientID&gt;<br>PAYPAL-CLIENT-SECRET=&lt;secret&gt;</code>
+                </li>
+            </ol>
+
+            <h3 class="mt-4">How to Use</h3>
+            <ol>
+                <li>Start the application from the project root:
+                    <pre><code class="language-bash">./mvnw spring-boot:run</code></pre>
+                </li>
+                <li>Open the UI in your browser:
+                    <ul>
+                        <li>Webstore (customer-facing): <a href="/webstore.html" target="_blank">/webstore.html</a></li>
+                        <li>Backoffice demo: <a href="/backoffice.html" target="_blank">/backoffice.html</a></li>
+                        <li>API docs (Swagger / OpenAPI UI): <a href="/swagger-ui/index.html" target="_blank">/swagger-ui/index.html</a></li>
+                    </ul>
+                </li>
+                <li>Use the Backoffice demo to fetch orders and order history, and to capture authorized payments.</li>
+            </ol>
+
+            <h3 class="mt-4">Important API endpoints (examples)</h3>
+            <ul>
+                <li><code>GET /api/catalog</code> — retrieve the product catalog</li>
+                <li><code>POST /api/checkout/orders</code> — submit a checkout order</li>
+                <li><code>POST /api/checkout/orders/{referenceId}/capture</code> — capture an order payment</li>
+                <li><code>POST /api/checkout/orders/{referenceId}/authorize</code> — authorize an order payment</li>
+                <li><code>GET /api/backoffice/orders</code> — list current orders</li>
+                <li><code>GET /api/backoffice/orders/history</code> — list orders history (most recent first)</li>
+            </ul>
+
+            <p class="mt-4"><strong>Note:</strong> This project is for demonstration purposes and showcases integration with the Payper SDK in a modern Java/Spring Boot environment.</p>
+
+            <h3 class="mt-4">Disclaimer</h3>
+            <p>This project is an example PoC using the Payper Java SDK and PayPal APIs. It is provided <em>as is</em> for demonstration purposes only. No warranties or guarantees are offered.</p>
+
+            <p class="mt-3"><strong>Author:</strong> Edgar Enrique Alba Barrile</p>
+        </div>
+    </div>
+</div>
+
+
+<script src="/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+</body>
+</html>

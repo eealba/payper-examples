@@ -1,174 +1,169 @@
-# Using Payper Java Client Library to Consume PayPal REST API
+# Subscriptions with Payper — Java client for PayPal REST API
 
-This tutorial will guide you through the process of using the Payper Java client library to create a product and a subscription plan using Java. We will use the `App.java` class as an example.
+## Overview
 
+This repository contains a concise, practical example that demonstrates how to create a product and a subscription plan using the Payper Java client library for PayPal's REST APIs. The example shows both synchronous and asynchronous implementations (`App.java` and `AppAsync.java`) so you can pick the integration style that best fits your application's concurrency model.
 
+This document is written as a short technical article: it explains the example, highlights Payper's key benefits, and provides copy-paste steps to run the sample locally.
 
-### Step 1: Set Up Your Project
+---
 
-1. Create a new Maven project using the following command:
+## Why Payper?
 
-    ```sh
-    mvn archetype:generate -DgroupId=com.example -DartifactId=subscriptions-app -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
-    ```
+Payper is a focused Java client that simplifies integration with PayPal's REST endpoints. The examples in this project showcase common patterns and best practices you should adopt in production integrations.
 
-2. Add the following dependencies to your `pom.xml` file:
+Key benefits demonstrated by this example:
 
-    ```xml
-    <dependencies>
-        <dependency>
-            <groupId>io.github.eealba.payper</groupId>
-            <artifactId>payper-subscriptions-v1</artifactId>
-            <version>${payper.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.eealba.payper</groupId>
-            <artifactId>payper-catalog-products-v1</artifactId>
-            <version>${payper.version}</version>
-        </dependency>
-    </dependencies>
-    ```
+- OAuth 2.0 token management: automatic token acquisition, reuse, and refresh.
+- Strongly-typed models: compile-time safety when building requests and reading responses.
+- Fluent, discoverable API: builders and method chaining for readable code.
+- Synchronous and asynchronous flavors: use the synchronous blocking API (`App.java`) or CompletableFuture-driven async API (`AppAsync.java`).
+- Idempotency and tracing: sample usage of `paypal-request-id` to avoid duplicate operations.
+- Clear error handling: responses expose success/error variants and HTTP status codes.
+- Minimal boilerplate to create products and subscription billing plans.
 
-### Step 2: Set Up Your Credentials
+---
 
-1. Create a file named `credentials.properties` in your home directory under `.payper` folder with the following content:
+## Prerequisites
 
-    ```properties
-    PAYPAL-CLIENT-ID=your-client-id
-    PAYPAL-CLIENT-SECRET=your-client-secret
-    ```
+- JDK 17 or later
+- Maven
+- A PayPal sandbox account (sandbox client ID and client secret)
+- Network access to the PayPal sandbox endpoints
 
-### Step 3: Implement the `App.java` Class
+---
 
-1. Create a new Java class named `App.java` in the `src/main/java/com/example` directory with the following content:
+## Dependencies
 
-    ```java
-    package com.example;
+Add the Payper modules required by the example to your project's `pom.xml`. This example uses the Subscriptions and Catalog Products modules. Replace `${payper.version}` with the latest Payper release (or the version you want to pin).
 
-    import io.github.eealba.payper.catalog.products.v1.api.CatalogProductsApiClient;
-    import io.github.eealba.payper.catalog.products.v1.model.Product;
-    import io.github.eealba.payper.catalog.products.v1.model.ProductCategory;
-    import io.github.eealba.payper.catalog.products.v1.model.ProductRequestPOST;
-    import io.github.eealba.payper.core.client.PayperAuthenticator;
-    import io.github.eealba.payper.subscriptions.v1.api.SubscriptionsApiClient;
-    import io.github.eealba.payper.subscriptions.v1.model.BillingCycle;
-    import io.github.eealba.payper.subscriptions.v1.model.CurrencyCode;
-    import io.github.eealba.payper.subscriptions.v1.model.Frequency;
-    import io.github.eealba.payper.subscriptions.v1.model.Money;
-    import io.github.eealba.payper.subscriptions.v1.model.PaymentPreferences;
-    import io.github.eealba.payper.subscriptions.v1.model.Percentage;
-    import io.github.eealba.payper.subscriptions.v1.model.Plan;
-    import io.github.eealba.payper.subscriptions.v1.model.PlanRequestPOST;
-    import io.github.eealba.payper.subscriptions.v1.model.PricingScheme;
-    import io.github.eealba.payper.subscriptions.v1.model.Taxes;
+```xml
+<dependencies>
+  <dependency>
+    <groupId>io.github.eealba.payper</groupId>
+    <artifactId>payper-subscriptions-v1</artifactId>
+    <version>${payper.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>io.github.eealba.payper</groupId>
+    <artifactId>payper-catalog-products-v1</artifactId>
+    <version>${payper.version}</version>
+  </dependency>
+</dependencies>
+```
 
-    import java.io.FileInputStream;
-    import java.io.IOException;
-    import java.util.List;
-    import java.util.Properties;
-    import java.util.UUID;
+Note: the example project inside this repository already includes the minimal skeleton—use the provided code as a reference implementation.
 
-    import static io.github.eealba.payper.core.client.PayperAuthenticator.PayperAuthenticators.API_SANDBOX_PAYPAL_COM;
+---
 
-    public class App {
-        public static void main(String[] args) throws IOException {
-            setCredentials();
-            var product = createProduct();
-            var plan = createPlan(product);
-        }
+## Credentials and Configuration
 
-        private static void setCredentials() throws IOException {
-            Properties props = new Properties();
-            props.load(new FileInputStream(System.getProperty("user.home") + "/.payper/credentials.properties"));
-            var payperAuthenticator = PayperAuthenticator.PayperAuthenticators.of(
-                    () -> API_SANDBOX_PAYPAL_COM,
-                    props.getProperty("PAYPAL-CLIENT-ID")::toCharArray,
-                    props.getProperty("PAYPAL-CLIENT-SECRET")::toCharArray
-            );
-            PayperAuthenticator.PayperAuthenticators.setDefault(payperAuthenticator);
-        }
+Create a properties file at `~/.payper/credentials.properties` with your sandbox credentials:
 
-        private static Product createProduct() {
-            var product = ProductRequestPOST.builder()
-                    .name("Video Streaming Service")
-                    .description("A video streaming service")
-                    .type(ProductRequestPOST.Type.SERVICE)
-                    .category(ProductCategory.SOFTWARE)
-                    .imageUrl("https://example.com/streaming.jpg")
-                    .homeUrl("https://example.com/home")
-                    .build();
+```properties
+PAYPAL-CLIENT-ID=your-sandbox-client-id
+PAYPAL-CLIENT-SECRET=your-sandbox-client-secret
+```
 
-            var response = CatalogProductsApiClient.create().products().create()
-                    .withPaypalRequestId(UUID.randomUUID().toString())
-                    .withBody(product)
-                    .retrieve()
-                    .toResponse();
+The example code reads credentials from this file and configures a Payper authenticator for the PayPal sandbox. You can adapt the authentication setup to read from environment variables or a secrets manager as needed.
 
-            var productResponse = response.toEntity();
-            System.out.println("Product created, id: " + productResponse.id());
-            return productResponse;
-        }
+---
 
-        private static Plan createPlan(Product product) {
-            var plan = PlanRequestPOST.builder()
-                    .productId(product.id())
-                    .name("Basic Plan")
-                    .description("A basic plan")
-                    .billingCycles(List.of(
-                            BillingCycle.builder()
-                                    .frequency(Frequency.builder().intervalUnit(Frequency.IntervalUnit.MONTH).intervalCount(1).build())
-                                    .tenureType(BillingCycle.TenureType.TRIAL)
-                                    .sequence(1)
-                                    .totalCycles(1)
-                                    .build(),
-                            BillingCycle.builder()
-                                    .frequency(Frequency.builder().intervalUnit(Frequency.IntervalUnit.MONTH).intervalCount(1).build())
-                                    .tenureType(BillingCycle.TenureType.REGULAR)
-                                    .sequence(2)
-                                    .totalCycles(12)
-                                    .pricingScheme(PricingScheme.builder()
-                                            .fixedPrice(new Money(CurrencyCode.USD, "10"))
-                                            .build())
-                                    .build()
-                            ))
-                    .paymentPreferences(PaymentPreferences.builder()
-                            .autoBillOutstanding(true)
-                            .setupFee(new Money(CurrencyCode.USD, "10"))
-                            .setupFeeFailureAction(PaymentPreferences.SetupFeeFailureAction.CONTINUE)
-                            .paymentFailureThreshold(3)
-                            .build())
-                    .taxes(Taxes.builder()
-                            .percentage(new Percentage("10"))
-                            .inclusive(false)
-                            .build())
-                    .build();
+## What the example does
 
-            var response = SubscriptionsApiClient.create().billingPlans().create()
-                    .withPaypalRequestId(UUID.randomUUID().toString())
-                    .withBody(plan)
-                    .retrieve()
-                    .toResponse();
+The sample demonstrates two flows:
 
-            var planResponse = response.toEntity();
-            System.out.println("Plan created, id: " + planResponse.id());
-            return planResponse;
-        }
-    }
-    ```
+1. Synchronous flow (`App.java`) — read credentials, create a product, then create a subscription plan associated with that product.
+2. Asynchronous flow (`AppAsync.java`) — same operations but implemented using CompletableFuture to avoid blocking the calling thread.
 
-### Step 4: Run the Application
+Both flows build a product named "Video Streaming Service" and a simple "Basic Plan" that contains a trial cycle and a regular recurring billing cycle. The plan includes payment preferences (setup fee, auto-bill) and taxes.
 
-1. Compile and run the application using the following Maven command:
+---
 
-    ```sh
-    mvn clean install
-    mvn exec:java -Dexec.mainClass="com.example.App"
-    ```
+## Key Implementation Highlights
 
-### Result
+- Credentials: `PayperAuthenticator.PayperAuthenticators.of(...)` is used to configure the sandbox endpoint and client credentials.
+- Product creation: `CatalogProductsApiClient.create().products().create()` builds and sends a product request. The example uses `withPaypalRequestId(UUID.randomUUID().toString())` to set an idempotency/tracing header.
+- Plan creation: `SubscriptionsApiClient.create().billingPlans().create()` builds a `PlanRequestPOST` containing billing cycles, pricing, payment preferences, and taxes.
+- Response handling: examples show both `toResponse().toEntity()` and future-based `toFuture().thenApply(ResponseSpec.Response::toEntity)` flows.
 
-After running the application, you should see the following output in the console:
+---
+
+## Example usage (Synchronous)
+
+The synchronous example is implemented in `src/main/java/com/example/App.java`. High-level flow:
+
+1. Load credentials from `~/.payper/credentials.properties`.
+2. Set the default Payper authenticator.
+3. Create a product via the Catalog Products API.
+4. Create a billing plan tied to the product via the Subscriptions API.
+
+Run the example locally:
+
+```bash
+mvn clean install
+mvn exec:java -Dexec.mainClass="com.example.App"
+```
+
+Expected console output (example):
 
 ```text
 Product created, id: PROD-7DW026709V5148032
 Plan created, id: P-0460813545146854PM6FVEAY
+```
+
+---
+
+## Example usage (Asynchronous)
+
+The asynchronous example is implemented in `src/main/java/com/example/AppAsync.java`. It mirrors the same logic as `App.java` but returns CompletableFutures for the product and plan creation operations. Use this variant when you want non-blocking integration inside a reactive or high-throughput environment.
+
+Run the async example:
+
+```bash
+mvn clean install
+mvn exec:java -Dexec.mainClass="com.example.AppAsync"
+```
+
+The example will print progress logs and final IDs when operations complete.
+
+---
+
+## Best practices and production notes
+
+- Secrets management: avoid committing credentials. Use environment variables, a secure secrets manager, or a vault service in production.
+- Retry and idempotency: use idempotency keys (paypal-request-id) for create operations to protect against duplicate requests.
+- Error handling: inspect `ResponseSpec.Response` for error details and HTTP status codes to implement proper retries and fallback logic.
+- Threading and scalability: use the async API for non-blocking server flows. The Payper client is designed to be thread-safe and to work in high-concurrency environments.
+- Versioning: pin the Payper dependency to a specific release and test upgrades in a staging environment before rolling to production.
+
+---
+
+## Files of interest
+
+- `src/main/java/com/example/App.java` — synchronous example (blocking)
+- `src/main/java/com/example/AppAsync.java` — asynchronous example (CompletableFuture)
+- `pom.xml` — minimal Maven project file (update with real Payper version as needed)
+
+---
+
+## Resources
+
+- 💻 Example repository (this project): https://github.com/eealba/payper-examples/tree/main/subscriptions-app
+- 📚 Payper library repository: https://github.com/eealba/payper
+- 📝 Medium — Payper Part 1 (Getting started): https://medium.com/@eealba/payper-java-client-for-paypal-rest-api-part-1-ca626d32875a
+- 📝 Medium — Payper Part 2 (Orders / Examples): https://medium.com/@eealba/payper-java-client-for-paypal-rest-api-part-2-orders-api-v2-1cae1dc8b7f0
+
+---
+
+## License
+
+This example inherits the repository license. See the top-level `LICENSE` file for details.
+
+---
+
+If you want, I can also:
+
+- add a short `pom.xml` snippet with a pinned Payper version to this example,
+- add a tiny script that bootstraps the credentials file for development,
+- or run a quick `mvn -q -DskipTests package` to verify compilation using a local Payper dependency if you provide the payper version to use.

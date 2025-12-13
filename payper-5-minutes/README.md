@@ -97,11 +97,12 @@ Congratulations! If you've followed the steps correctly, you've successfully mad
 
 ## Conclusion
 
-This introductory guide highlights the versatility of Payper, enabling you to minimize integration time and focus on what matters most to your business. For the complete code used in this guide, visit the following links:
-
-- [Example Code Repository](https://github.com/eealba/payper-examples/tree/main/payper-5-minutes)
-- [Payper Library Repository](https://github.com/eealba/payper)
+This introductory guide highlights the versatility of Payper, enabling you to minimize integration time and focus on what matters most to your business. 
 
 ---
 
-Original article: [Payper: Java Client for PayPal REST API - Part 1](https://medium.com/@eealba/payper-java-client-for-paypal-rest-api-part-1-ca626d32875a?source=friends_link&sk=7027166d2f1ce506f47659aabd1eb0dd)
+## Resources
+
+- 📝 **Original Article**: [Payper: Java Client for PayPal REST API - Part 1](https://medium.com/@eealba/payper-java-client-for-paypal-rest-api-part-1-ca626d32875a?source=friends_link&sk=7027166d2f1ce506f47659aabd1eb0dd)
+- 💻 **Complete Code**: [View on GitHub](https://github.com/eealba/payper-examples/tree/main/payper-5-minutes)
+- 📚 **Payper Library**: [GitHub Repository](https://github.com/eealba/payper)
