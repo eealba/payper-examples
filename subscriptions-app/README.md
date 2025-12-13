@@ -160,10 +160,3 @@ The example will print progress logs and final IDs when operations complete.
 
 This example inherits the repository license. See the top-level `LICENSE` file for details.
 
----
-
-If you want, I can also:
-
-- add a short `pom.xml` snippet with a pinned Payper version to this example,
-- add a tiny script that bootstraps the credentials file for development,
-- or run a quick `mvn -q -DskipTests package` to verify compilation using a local Payper dependency if you provide the payper version to use.

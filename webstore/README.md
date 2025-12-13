@@ -72,6 +72,12 @@ Replace `<clientID>` and `<secret>` with the credentials from the PayPal dashboa
 
 See `src/main/resources/openapi/openapi.yml` for full DTO schemas and API documentation.
 
+## Execution Flow
+
+For a detailed, step-by-step execution flow (including PayPal-account redirect vs credit-card direct capture, frontend JS interactions and backend call graph with a Mermaid sequence diagram), see: [Execution Flow — WEBSTORE_FLOW.md](WEBSTORE_FLOW.md)
+
+This document explains how `app.js` and `backapp.js` interact with the backend controllers, the core use-cases, and the `PayPalPaymentGateway` that uses the Payper SDK.
+
 ## Development notes
 - The product data used by the frontend is stored in `src/main/resources/data/products.json`.
 - Frontend JavaScript lives in `src/main/resources/static/app.js` and `src/main/resources/static/backapp.js`.

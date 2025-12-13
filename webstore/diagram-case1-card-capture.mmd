@@ -1,0 +1,23 @@
+sequenceDiagram
+    autonumber
+    participant C as Customer (browser)
+    participant UI as webstore HTML/JS (app.js)
+    participant API as Checkout API (CheckoutApiImpl)
+    participant Service as SubmitOrderService
+    participant Gateway as PayPalPaymentGateway
+    participant Payper as Payper SDK (Orders)
+    participant PayPal as PayPal
+    participant Repo as MemoryOrderRepository
+
+    C->>UI: Click Buy (Card)
+    UI->>API: POST /api/checkout/orders { productId, paymentMethod: card, paymentIntent: CAPTURE }
+    API->>Service: submitOrder(request)
+    Service->>Gateway: submitOrder(orderModel)
+    Gateway->>Payper: orders.create().withPaypalRequestId(...).withBody(payment_source card).retrieve()
+    Payper->>Gateway: Response (COMPLETED)
+    Gateway->>Repo: saveOrder(status: COMPLETED, externalOrderId)
+    Gateway->>Service: return submitted OrderModel
+    Service->>API: return OrderResponse { status: COMPLETED }
+    API->>UI: JSON { status: COMPLETED }
+    UI->>C: show success
+

@@ -1,0 +1,45 @@
+sequenceDiagram
+    autonumber
+    participant C as Customer (browser)
+    participant UI as webstore HTML/JS (app.js)
+    participant API as Checkout API (CheckoutApiImpl)
+    participant Service as SubmitOrderService
+    participant Gateway as PayPalPaymentGateway
+    participant Payper as Payper SDK (Orders)
+    participant PayPal as PayPal
+    participant Repo as MemoryOrderRepository
+    participant Backoffice as backapp.js
+
+    C->>UI: Click Buy (PayPal account, Authorize)
+    UI->>API: POST /api/checkout/orders { productId, paymentMethod: paypal, paymentIntent: AUTHORIZE }
+    API->>Service: submitOrder(request)
+    Service->>Gateway: submitOrder(orderModel)
+    Gateway->>Payper: orders.create().withPaypalRequestId(...).withBody(...).retrieve()
+    Payper->>Gateway: Response (PAYER_ACTION_REQUIRED + approvalUrl)
+    Gateway->>Repo: saveOrder(status: PAYER_ACTION_REQUIRED, externalOrderId, links)
+    Gateway->>Service: return submitted OrderModel
+    Service->>API: return OrderResponse { status: PAYER_ACTION_REQUIRED, approvalUrl }
+    API->>UI: JSON { status: PAYER_ACTION_REQUIRED, approvalUrl }
+    UI->>C: redirect to approvalUrl
+    C->>PayPal: Approve payment
+    PayPal->>C: Redirect back to merchant (with params)
+    C->>UI: app.js processes query params and POST /api/checkout/orders/{ref}/authorize
+    API->>Service: authorize(reference)
+    Service->>Gateway: authorizeOrder(orderModel)
+    Gateway->>Payper: orders.authorize().withId(externalOrderId).retrieve()
+    Payper->>Gateway: authorize response (authorizationId)
+    Gateway->>Repo: saveOrder(status: AUTHORIZED, externalAuthorizationId)
+    Gateway->>Service: return updated order
+    Service->>API: return response
+    API->>UI: JSON { status: AUTHORIZED }
+    Note over Backoffice, Repo: Backoffice polls orders
+    Backoffice->>API: POST /api/payments/authorizations/{referenceId}/capture
+    API->>Service: captureAuthorization(referenceId)
+    Service->>Gateway: captureAuthorization(orderModel)
+    Gateway->>Payper: authorizations.capture().withId(externalAuthorizationId).retrieve()
+    Payper->>Gateway: capture result (COMPLETED)
+    Gateway->>Repo: saveOrder(status: COMPLETED)
+    Gateway->>Service: return result
+    Service->>API: return response
+    API->>Backoffice: JSON { status: COMPLETED }
+

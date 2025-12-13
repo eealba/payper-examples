@@ -1,0 +1,62 @@
+sequenceDiagram
+    autonumber
+    participant C as Customer (browser)
+    participant UI as webstore HTML/JS (app.js)
+    participant API as Checkout API (CheckoutApiImpl)
+    participant Service as SubmitOrderService
+    participant Gateway as PayPalPaymentGateway
+    participant Payper as Payper SDK (Orders/Payments)
+    participant PayPal as PayPal
+    participant Repo as MemoryOrderRepository
+    participant BackOffice as backapp.js
+
+    C->>UI: Click Buy / Pay
+    UI->>API: POST /api/checkout/orders {productId, paymentMethod, paymentIntent,...}
+    API->>Service: submitOrder(request)
+    Service->>Gateway: submitOrder(orderModel)
+    Gateway->>Payper: orders.create().withPaypalRequestId(...).withBody(...).retrieve()
+    alt PayPal returns PAYER_ACTION_REQUIRED (redirect)
+        Payper->>Gateway: Response (PAYER_ACTION_REQUIRED + approvalUrl + externalOrderId)
+        Gateway->>Repo: saveOrder(order with links & external ids)
+        Gateway->>Service: return submitted OrderModel
+        Service->>API: return OrderResponse {status:PAYER_ACTION_REQUIRED, approvalUrl}
+        API->>UI: JSON {status:PAYER_ACTION_REQUIRED, approvalUrl}
+        UI->>C: window.location.href = approvalUrl (redirect to paypal)
+        C->>PayPal: Approve payment (login + approve)
+        PayPal->>C: Redirect back to merchant (with query params)
+        C->>UI: Browser loads page with action/data query params
+        UI->>API: POST /api/checkout/orders/{ref}/authorize  (app.js 'process')
+        API->>AuthorizeService: authorize(reference)
+        AuthorizeService->>Gateway: authorizeOrder(orderModel)
+        Gateway->>Payper: orders.authorize().withId(...).retrieve()
+        Payper->>Gateway: authorize response
+        Gateway->>Repo: saveOrder(updated order with authorizationId)
+        Gateway->>AuthorizeService: return updated order
+        AuthorizeService->>API: return success
+    else PayPal returns COMPLETED (card direct capture or immediate):
+        Payper->>Gateway: Response (COMPLETED + transaction details)
+        Gateway->>Repo: saveOrder(COMPLETED)
+        Gateway->>Service: return submitted OrderModel
+        Service->>API: return OrderResponse {status:COMPLETED}
+        API->>UI: JSON {status:COMPLETED}
+        UI->>C: show success
+    end
+
+    Note over BackOffice, Repo: Backoffice polls orders
+    BackOffice->>API: GET /api/backoffice/orders
+    API->>Repo: getOrders()
+    Repo-->>API: list of orders
+    API-->>BackOffice: JSON orders
+
+    alt capture authorized payment from Backoffice
+        BackOffice->>API: POST /api/payments/authorizations/{ref}/capture
+        API->>CaptureAuthService: capture(reference)
+        CaptureAuthService->>Gateway: captureAuthorization(orderModel)
+        Gateway->>Payper: authorizations.capture().withId(...).retrieve()
+        Payper->>Gateway: Capture result
+        Gateway->>Repo: saveOrder(updated status)
+        Gateway->>CaptureAuthService: return result
+        CaptureAuthService->>API: return response
+        API->>BackOffice: JSON {status:COMPLETED}
+    end
+

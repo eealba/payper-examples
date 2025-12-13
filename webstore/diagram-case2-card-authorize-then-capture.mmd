@@ -1,0 +1,34 @@
+sequenceDiagram
+    autonumber
+    participant C as Customer (browser)
+    participant UI as webstore HTML/JS (app.js)
+    participant API as Checkout API (CheckoutApiImpl)
+    participant Service as SubmitOrderService
+    participant Gateway as PayPalPaymentGateway
+    participant Payper as Payper SDK (Orders)
+    participant Repo as MemoryOrderRepository
+    participant Backoffice as backapp.js
+
+    C->>UI: Click Buy (Card, Authorize)
+    UI->>API: POST /api/checkout/orders { productId, paymentMethod: card, paymentIntent: AUTHORIZE }
+    API->>Service: submitOrder(request)
+    Service->>Gateway: submitOrder(orderModel)
+    Gateway->>Payper: orders.create().withPaypalRequestId(...).withBody(payment_source card).retrieve()
+    Payper->>Gateway: Response (AUTHORIZATION_CREATED, externalOrderId)
+    Gateway->>Repo: saveOrder(status: AUTHORIZED, externalOrderId, externalAuthorizationId)
+    Gateway->>Service: return submitted OrderModel
+    Service->>API: return OrderResponse { status: AUTHORIZED }
+    API->>UI: JSON { status: AUTHORIZED }
+    UI->>C: show authorization pending
+
+    Note over Backoffice, Repo: Backoffice polls orders
+    Backoffice->>API: POST /api/payments/authorizations/{referenceId}/capture
+    API->>Service: captureAuthorization(referenceId)
+    Service->>Gateway: captureAuthorization(orderModel)
+    Gateway->>Payper: authorizations.capture().withId(externalAuthorizationId).retrieve()
+    Payper->>Gateway: Capture result (COMPLETED)
+    Gateway->>Repo: saveOrder(status: COMPLETED)
+    Gateway->>Service: return capture result
+    Service->>API: return response
+    API->>Backoffice: JSON { status: COMPLETED }
+

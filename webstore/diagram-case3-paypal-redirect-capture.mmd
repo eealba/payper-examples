@@ -1,0 +1,35 @@
+sequenceDiagram
+    autonumber
+    participant C as Customer (browser)
+    participant UI as webstore HTML/JS (app.js)
+    participant API as Checkout API (CheckoutApiImpl)
+    participant Service as SubmitOrderService
+    participant Gateway as PayPalPaymentGateway
+    participant Payper as Payper SDK (Orders)
+    participant PayPal as PayPal
+    participant Repo as MemoryOrderRepository
+
+    C->>UI: Click Buy (PayPal account)
+    UI->>API: POST /api/checkout/orders { productId, paymentMethod: paypal, paymentIntent: CAPTURE }
+    API->>Service: submitOrder(request)
+    Service->>Gateway: submitOrder(orderModel)
+    Gateway->>Payper: orders.create().withPaypalRequestId(...).withBody(...).retrieve()
+    Payper->>Gateway: Response (PAYER_ACTION_REQUIRED + approvalUrl)
+    Gateway->>Repo: saveOrder(status: PAYER_ACTION_REQUIRED, externalOrderId, links)
+    Gateway->>Service: return submitted OrderModel
+    Service->>API: return OrderResponse { status: PAYER_ACTION_REQUIRED, approvalUrl }
+    API->>UI: JSON { status: PAYER_ACTION_REQUIRED, approvalUrl }
+    UI->>C: redirect to approvalUrl
+    C->>PayPal: Approve payment
+    PayPal->>C: Redirect back to merchant (with params)
+    C->>UI: app.js processes query params and POST /api/checkout/orders/{ref}/capture
+    API->>Service: capture(reference)
+    Service->>Gateway: captureOrder(orderModel)
+    Gateway->>Payper: orders.capture().withId(externalOrderId).retrieve()
+    Payper->>Gateway: capture result (COMPLETED)
+    Gateway->>Repo: saveOrder(status: COMPLETED)
+    Gateway->>Service: return result
+    Service->>API: return response
+    API->>UI: JSON { status: COMPLETED }
+    UI->>C: show success
+
