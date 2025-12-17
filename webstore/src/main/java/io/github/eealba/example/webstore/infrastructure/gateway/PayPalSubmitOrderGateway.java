@@ -20,7 +20,7 @@ import java.util.function.Function;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PayPalPaymentGateway implements SubmitOrderGateway {
+public class PayPalSubmitOrderGateway implements SubmitOrderGateway {
     private final PayPalMapper payPalMapper;
     private final URIService URIService;
     private final CheckoutOrdersApiClient checkoutOrdersApiClient;

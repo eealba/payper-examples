@@ -19,7 +19,7 @@ A compact, developer-focused guide explaining the end-to-end runtime behavior of
 - Frontend: `src/main/resources/static/app.js`, `src/main/resources/static/backapp.js`, `src/main/resources/static/webstore.html`, `src/main/resources/static/backoffice.html`
 - Backend controllers: `io.github.eealba.example.webstore.infrastructure.web.CheckoutApiImpl`, `PaymentsApiImpl`, `CatalogApiImpl`, `BackofficeApiImpl`
 - Core use-cases / services: `SubmitOrderServiceImpl`, `AuthorizeOrderServiceImpl`, `CaptureOrderServiceImpl`, `CaptureAuthorizationServiceImpl`
-- Gateway: `io.github.eealba.example.webstore.infrastructure.gateway.PayPalPaymentGateway`
+- Gateway: `io.github.eealba.example.webstore.infrastructure.gateway.PayPalSubmitOrderGateway`
 - Repositories: `MemoryOrderRepositoryImpl`
 - Mapper: `PayPalMapper`, `WebMapper` (map between DTOs and domain models)
 
