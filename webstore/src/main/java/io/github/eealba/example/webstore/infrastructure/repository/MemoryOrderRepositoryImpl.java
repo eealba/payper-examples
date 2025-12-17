@@ -21,7 +21,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class MemoryOrderRepositoryImpl implements OrderRepository {
     private final Map<OrderId, OrderModel> orders = new TreeMap<>();
     private final AtomicLong counter = new AtomicLong();
-    // History stack: newest orders at the front
     private final Deque<OrderModel> history = new ArrayDeque<>();
 
     @Override
@@ -35,7 +34,6 @@ public class MemoryOrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<OrderModel> getOrdersHistory() {
-        // Return a snapshot list with the most recent order first
         synchronized (history) {
             return new ArrayList<>(history);
         }
